@@ -1,0 +1,27 @@
+# Node modules
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos de entorno (evita subir secretos)
+.env
+config.env
+
+# Directorios de compilación o distribución (si los hay)
+dist/
+
+# Directorios de cobertura de tests
+coverage/
+
+# Archivos y carpetas del sistema
+.DS_Store
+Thumbs.db
+
+# Configuraciones de IDEs y editores
+.vscode/
+.idea/

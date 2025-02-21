@@ -1,0 +1,454 @@
+<wsdl:definitions targetNamespace="http://services.crm.ticketing.inew.com">
+<wsdl:types>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://services.crm.ticketing.inew.com">
+<xs:element name="createTroubleTicket" type="tns:createTroubleTicket"/>
+<xs:element name="createTroubleTicketResponse" type="tns:createTroubleTicketResponse"/>
+<xs:element name="getTroubleTicketById" type="tns:getTroubleTicketById"/>
+<xs:element name="getTroubleTicketByIdResponse" type="tns:getTroubleTicketResponse"/>
+<xs:element name="getTroubleTicketByMSISDN" type="tns:getTroubleTicketByMSISDN"/>
+<xs:element name="getTroubleTicketByMSISDNResponse" type="tns:getTroubleTicketResponse"/>
+<xs:element name="getTroubleTicketBySubscriberId" type="tns:getTroubleTicketBySubscriberId"/>
+<xs:element name="getTroubleTicketBySubscriberIdResponse" type="tns:getTroubleTicketResponse"/>
+<xs:element name="getTroubleTicketCategories" type="tns:getTroubleTicketCategories"/>
+<xs:element name="getTroubleTicketCategoriesResponse" type="tns:getTroubleTicketCategoriesResponse"/>
+<xs:element name="subscriber" type="tns:subscriber"/>
+<xs:element name="channel" type="tns:channel"/>
+<xs:element name="tickets" type="tns:tickets"/>
+<xs:element name="ticket" type="tns:ticket"/>
+<xs:element name="comments" type="tns:comments"/>
+<xs:element name="comment" type="tns:comment"/>
+<xs:element name="categories" type="tns:categories"/>
+<xs:element name="category" type="tns:category"/>
+<xs:element name="ticketType" type="tns:ticketType"/>
+<xs:element name="ticketingException" type="tns:ticketingException"/>
+<xs:complexType name="createTroubleTicket">
+<xs:sequence>
+<xs:element name="providerId" nillable="true" type="xs:int"/>
+<xs:element minOccurs="0" name="ticketId" nillable="true" type="xs:int"/>
+<xs:element name="creationDate" type="xs:dateTime"/>
+<xs:element name="channel" type="tns:channel"/>
+<xs:element minOccurs="0" name="categoryId" nillable="true" type="xs:int"/>
+<xs:element name="subscriber" type="tns:subscriber"/>
+<xs:element minOccurs="0" name="title" nillable="true" type="xs:string"/>
+<xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
+<xs:element minOccurs="0" name="appeal" nillable="true" type="xs:boolean"/>
+<xs:element minOccurs="0" name="attachments" type="tns:attachments"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="createTroubleTicketResponse">
+<xs:sequence>
+<xs:element name="responseCode" type="xs:int"/>
+<xs:element minOccurs="0" name="responseDetail" nillable="true" type="xs:string"/>
+<xs:element name="providerId" nillable="true" type="xs:int"/>
+<xs:element name="ticketId" type="xs:int"/>
+<xs:element name="creationDate" type="xs:dateTime"/>
+<xs:element name="channel" type="tns:channel"/>
+<xs:element minOccurs="0" name="categoryId" nillable="true" type="xs:int"/>
+<xs:element minOccurs="0" name="categoryName" nillable="true" type="xs:string"/>
+<xs:element name="subscriber" type="tns:subscriber"/>
+<xs:element minOccurs="0" name="title" nillable="true" type="xs:string"/>
+<xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
+<xs:element minOccurs="0" name="status" nillable="true" type="xs:string"/>
+<xs:element minOccurs="0" name="offerTreatment" nillable="true" type="xs:string"/>
+<xs:element minOccurs="0" name="appeal" nillable="true" type="xs:boolean"/>
+<xs:element minOccurs="0" name="attachments" type="tns:attachments"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="getTroubleTicketByMSISDN">
+<xs:sequence>
+<xs:element name="providerId" nillable="true" type="xs:int"/>
+<xs:element name="msisdn" type="xs:string"/>
+<xs:element minOccurs="0" name="ticketType" nillable="true" type="tns:ticketType"/>
+<xs:element minOccurs="0" name="id" nillable="true" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="getTroubleTicketById">
+<xs:sequence>
+<xs:element name="providerId" nillable="true" type="xs:int"/>
+<xs:element name="ticketId" type="xs:integer"/>
+<xs:element minOccurs="0" name="ticketType" nillable="true" type="tns:ticketType"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="getTroubleTicketBySubscriberId">
+<xs:sequence>
+<xs:element name="providerId" nillable="true" type="xs:int"/>
+<xs:element name="subscriberId" type="xs:int"/>
+<xs:element minOccurs="0" name="ticketType" nillable="true" type="tns:ticketType"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="getTroubleTicketResponse">
+<xs:sequence>
+<xs:element name="responseCode" type="xs:int"/>
+<xs:element minOccurs="0" name="responseDetail" nillable="true" type="xs:string"/>
+<xs:element name="providerId" nillable="true" type="xs:int"/>
+<xs:element minOccurs="0" name="ticketId" nillable="true" type="xs:integer"/>
+<xs:element minOccurs="0" name="msisdn" nillable="true" type="xs:string"/>
+<xs:element minOccurs="0" name="subscriberId" nillable="true" type="xs:int"/>
+<xs:element minOccurs="0" name="ticketType" nillable="true" type="tns:ticketType"/>
+<xs:element minOccurs="0" name="tickets" nillable="true" type="tns:tickets"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="getTroubleTicketCategories">
+<xs:sequence>
+<xs:element name="providerId" nillable="true" type="xs:int"/>
+<xs:element name="getCategories" nillable="true" type="xs:boolean"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="getTroubleTicketCategoriesResponse">
+<xs:sequence>
+<xs:element name="responseCode" type="xs:int"/>
+<xs:element minOccurs="0" name="responseDetail" nillable="true" type="xs:string"/>
+<xs:element name="providerId" nillable="true" type="xs:int"/>
+<xs:element name="categories" nillable="true" type="tns:categories"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="subscriber">
+<xs:sequence>
+<xs:element minOccurs="0" name="msisdn" nillable="true" type="xs:string"/>
+<xs:element minOccurs="0" name="id" nillable="true" type="xs:int"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="attachments">
+<xs:sequence>
+<xs:element minOccurs="0" name="attachment" nillable="true" type="tns:attachment"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="attachment">
+<xs:sequence>
+<xs:element name="filename" nillable="true" type="xs:string"/>
+<xs:element name="filetype" nillable="true" type="xs:string"/>
+<xs:element name="file" nillable="true" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+<xs:simpleType name="channel">
+<xs:restriction base="xs:string">
+<xs:enumeration value="TELEFONICO"/>
+<xs:enumeration value="CHAT"/>
+<xs:enumeration value="WEB"/>
+<xs:enumeration value="WEB_PORTAL"/>
+<xs:enumeration value="MAIL"/>
+<xs:enumeration value="REDES_SOCIALES"/>
+</xs:restriction>
+</xs:simpleType>
+<xs:simpleType name="ticketType">
+<xs:restriction base="xs:string">
+<xs:enumeration value="TT"/>
+<xs:enumeration value="CUN"/>
+</xs:restriction>
+</xs:simpleType>
+<xs:complexType name="tickets">
+<xs:sequence>
+<xs:element minOccurs="0" name="ticket" type="tns:ticket"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="ticket">
+<xs:sequence>
+<xs:element name="ticketId" type="xs:int"/>
+<xs:element minOccurs="0" name="CUNId" nillable="true" type="xs:string"/>
+<xs:element name="creationDate" type="xs:string"/>
+<xs:element minOccurs="0" name="expectedResponseDate" nillable="true" type="xs:string"/>
+<xs:element name="channel" type="tns:channel"/>
+<xs:element minOccurs="0" name="categoryId" nillable="true" type="xs:int"/>
+<xs:element minOccurs="0" name="categoryName" nillable="true" type="xs:string"/>
+<xs:element minOccurs="0" name="title" nillable="true" type="xs:string"/>
+<xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
+<xs:element minOccurs="0" name="comments" nillable="true" type="tns:comments"/>
+<xs:element minOccurs="0" name="status" nillable="true" type="xs:string"/>
+<xs:element minOccurs="0" name="offerTreatment" nillable="true" type="xs:string"/>
+<xs:element minOccurs="0" name="appealAllowed" nillable="true" type="xs:boolean"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="comments">
+<xs:sequence>
+<xs:element minOccurs="0" name="comment" nillable="true" type="tns:comment"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="comment">
+<xs:sequence>
+<xs:element name="creationDate" type="xs:string"/>
+<xs:element name="channel" type="tns:channel"/>
+<xs:element minOccurs="0" name="categoryId" nillable="true" type="xs:int"/>
+<xs:element minOccurs="0" name="categoryName" nillable="true" type="xs:string"/>
+<xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
+<xs:element minOccurs="0" name="status" nillable="true" type="xs:string"/>
+<xs:element minOccurs="0" name="offerTreatment" nillable="true" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="categories">
+<xs:sequence>
+<xs:element minOccurs="0" name="category" nillable="true" type="tns:category"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="category">
+<xs:sequence>
+<xs:element name="categoryId" type="xs:int"/>
+<xs:element name="categoryName" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="ticketingException">
+<xs:sequence>
+<xs:element minOccurs="0" name="faultcode" nillable="true" type="xs:string"/>
+<xs:element minOccurs="0" name="faultstring" nillable="true" type="xs:string"/>
+<xs:element minOccurs="0" name="detail" nillable="true" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:schema>
+</wsdl:types>
+<wsdl:message name="getTroubleTicketCategories">
+<wsdl:part name="parameter" element="tns:getTroubleTicketCategories"/>
+</wsdl:message>
+<wsdl:message name="getTroubleTicketCategoriesResponse">
+<wsdl:part name="parameter" element="tns:getTroubleTicketCategoriesResponse"/>
+</wsdl:message>
+<wsdl:message name="ticketingException">
+<wsdl:part name="fault" element="tns:ticketingException"/>
+</wsdl:message>
+<wsdl:message name="getTroubleTicketBySubscriberId">
+<wsdl:part name="parameter" element="tns:getTroubleTicketBySubscriberId"/>
+</wsdl:message>
+<wsdl:message name="getTroubleTicketBySubscriberIdResponse">
+<wsdl:part name="parameter" element="tns:getTroubleTicketBySubscriberIdResponse"/>
+</wsdl:message>
+<wsdl:message name="createTroubleTicket">
+<wsdl:part name="parameter" element="tns:createTroubleTicket"/>
+</wsdl:message>
+<wsdl:message name="createTroubleTicketResponse">
+<wsdl:part name="parameter" element="tns:createTroubleTicketResponse"/>
+</wsdl:message>
+<wsdl:message name="getTroubleTicketByMSISDN">
+<wsdl:part name="parameter" element="tns:getTroubleTicketByMSISDN"/>
+</wsdl:message>
+<wsdl:message name="getTroubleTicketByMSISDNResponse">
+<wsdl:part name="parameter" element="tns:getTroubleTicketByMSISDNResponse"/>
+</wsdl:message>
+<wsdl:message name="getTroubleTicketById">
+<wsdl:part name="parameter" element="tns:getTroubleTicketById"/>
+</wsdl:message>
+<wsdl:message name="getTroubleTicketByIdResponse">
+<wsdl:part name="parameter" element="tns:getTroubleTicketByIdResponse"/>
+</wsdl:message>
+<wsdl:portType name="TicketingServicePortType">
+<wsdl:operation name="getTroubleTicketCategories">
+<wsdl:input message="tns:getTroubleTicketCategories"/>
+<wsdl:output message="tns:getTroubleTicketCategoriesResponse" wsaw:Action="http://services.crm.ticketing.inew.com/ticketingServicePortTypes/getTroubleTicketCategoriesResponse"/>
+<wsdl:fault message="tns:ticketingException" name="ticketingException" wsaw:Action="http://services.crm.ticketing.inew.com/ticketingServicePortTypes/getTroubleTicketCategories/Fault/ticketingException"/>
+</wsdl:operation>
+<wsdl:operation name="getTroubleTicketBySubscriberId">
+<wsdl:input message="tns:getTroubleTicketBySubscriberId"/>
+<wsdl:output message="tns:getTroubleTicketBySubscriberIdResponse" wsaw:Action="http://services.crm.ticketing.inew.com/ticketingServicePortTypes/getTroubleTicketBySubscriberIdResponse"/>
+<wsdl:fault message="tns:ticketingException" name="ticketingException" wsaw:Action="http://services.crm.ticketing.inew.com/ticketingServicePortTypes/getTroubleTicketBySubscriberId/Fault/ticketingException"/>
+</wsdl:operation>
+<wsdl:operation name="createTroubleTicket">
+<wsdl:input message="tns:createTroubleTicket"/>
+<wsdl:output message="tns:createTroubleTicketResponse" wsaw:Action="http://services.crm.ticketing.inew.com/ticketingServicePortTypes/createTroubleTicketResponse"/>
+<wsdl:fault message="tns:ticketingException" name="ticketingException" wsaw:Action="http://services.crm.ticketing.inew.com/ticketingServicePortTypes/createTroubleTicket/Fault/ticketingException"/>
+</wsdl:operation>
+<wsdl:operation name="getTroubleTicketByMSISDN">
+<wsdl:input message="tns:getTroubleTicketByMSISDN"/>
+<wsdl:output message="tns:getTroubleTicketByMSISDNResponse" wsaw:Action="http://services.crm.ticketing.inew.com/ticketingServicePortTypes/getTroubleTicketByMSISDNResponse"/>
+<wsdl:fault message="tns:ticketingException" name="ticketingException" wsaw:Action="http://services.crm.ticketing.inew.com/ticketingServicePortTypes/getTroubleTicketByMSISDN/Fault/ticketingException"/>
+</wsdl:operation>
+<wsdl:operation name="getTroubleTicketById">
+<wsdl:input message="tns:getTroubleTicketById"/>
+<wsdl:output message="tns:getTroubleTicketByIdResponse" wsaw:Action="http://services.crm.ticketing.inew.com/ticketingServicePortTypes/getTroubleTicketByIdResponse"/>
+<wsdl:fault message="tns:ticketingException" name="ticketingException" wsaw:Action="http://services.crm.ticketing.inew.com/ticketingServicePortTypes/getTroubleTicketById/Fault/ticketingException"/>
+</wsdl:operation>
+</wsdl:portType>
+<wsdl:binding name="TicketingServiceSoap11Binding" type="tns:TicketingServicePortType">
+<soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+<wsdl:operation name="getTroubleTicketCategories">
+<soap:operation soapAction="" style="document"/>
+<wsdl:input>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output>
+<soap:body use="literal"/>
+</wsdl:output>
+<wsdl:fault name="ticketingException">
+<soap:fault use="literal" name="ticketingException"/>
+</wsdl:fault>
+</wsdl:operation>
+<wsdl:operation name="getTroubleTicketBySubscriberId">
+<soap:operation soapAction="" style="document"/>
+<wsdl:input>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output>
+<soap:body use="literal"/>
+</wsdl:output>
+<wsdl:fault name="ticketingException">
+<soap:fault use="literal" name="ticketingException"/>
+</wsdl:fault>
+</wsdl:operation>
+<wsdl:operation name="createTroubleTicket">
+<soap:operation soapAction="" style="document"/>
+<wsdl:input>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output>
+<soap:body use="literal"/>
+</wsdl:output>
+<wsdl:fault name="ticketingException">
+<soap:fault use="literal" name="ticketingException"/>
+</wsdl:fault>
+</wsdl:operation>
+<wsdl:operation name="getTroubleTicketById">
+<soap:operation soapAction="" style="document"/>
+<wsdl:input>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output>
+<soap:body use="literal"/>
+</wsdl:output>
+<wsdl:fault name="ticketingException">
+<soap:fault use="literal" name="ticketingException"/>
+</wsdl:fault>
+</wsdl:operation>
+<wsdl:operation name="getTroubleTicketByMSISDN">
+<soap:operation soapAction="" style="document"/>
+<wsdl:input>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output>
+<soap:body use="literal"/>
+</wsdl:output>
+<wsdl:fault name="ticketingException">
+<soap:fault use="literal" name="ticketingException"/>
+</wsdl:fault>
+</wsdl:operation>
+</wsdl:binding>
+<wsdl:binding name="TicketingServiceSoap12Binding" type="tns:TicketingServicePortType">
+<soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+<wsdl:operation name="getTroubleTicketCategories">
+<soap12:operation soapAction="" style="document"/>
+<wsdl:input>
+<soap12:body use="literal"/>
+</wsdl:input>
+<wsdl:output>
+<soap12:body use="literal"/>
+</wsdl:output>
+<wsdl:fault name="ticketingException">
+<soap12:fault use="literal" name="ticketingException"/>
+</wsdl:fault>
+</wsdl:operation>
+<wsdl:operation name="getTroubleTicketBySubscriberId">
+<soap12:operation soapAction="" style="document"/>
+<wsdl:input>
+<soap12:body use="literal"/>
+</wsdl:input>
+<wsdl:output>
+<soap12:body use="literal"/>
+</wsdl:output>
+<wsdl:fault name="ticketingException">
+<soap12:fault use="literal" name="ticketingException"/>
+</wsdl:fault>
+</wsdl:operation>
+<wsdl:operation name="createTroubleTicket">
+<soap12:operation soapAction="" style="document"/>
+<wsdl:input>
+<soap12:body use="literal"/>
+</wsdl:input>
+<wsdl:output>
+<soap12:body use="literal"/>
+</wsdl:output>
+<wsdl:fault name="ticketingException">
+<soap12:fault use="literal" name="ticketingException"/>
+</wsdl:fault>
+</wsdl:operation>
+<wsdl:operation name="getTroubleTicketById">
+<soap12:operation soapAction="" style="document"/>
+<wsdl:input>
+<soap12:body use="literal"/>
+</wsdl:input>
+<wsdl:output>
+<soap12:body use="literal"/>
+</wsdl:output>
+<wsdl:fault name="ticketingException">
+<soap12:fault use="literal" name="ticketingException"/>
+</wsdl:fault>
+</wsdl:operation>
+<wsdl:operation name="getTroubleTicketByMSISDN">
+<soap12:operation soapAction="" style="document"/>
+<wsdl:input>
+<soap12:body use="literal"/>
+</wsdl:input>
+<wsdl:output>
+<soap12:body use="literal"/>
+</wsdl:output>
+<wsdl:fault name="ticketingException">
+<soap12:fault use="literal" name="ticketingException"/>
+</wsdl:fault>
+</wsdl:operation>
+</wsdl:binding>
+<wsdl:binding name="TicketingServiceHttpBinding" type="tns:TicketingServicePortType">
+<http:binding verb="POST"/>
+<wsdl:operation name="getTroubleTicketCategories">
+<http:operation location="getTroubleTicketCategories"/>
+<wsdl:input>
+<mime:content type="text/xml" part="parameters"/>
+</wsdl:input>
+<wsdl:output>
+<mime:content type="text/xml" part="parameters"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="getTroubleTicketBySubscriberId">
+<http:operation location="getTroubleTicketBySubscriberId"/>
+<wsdl:input>
+<mime:content type="text/xml" part="parameters"/>
+</wsdl:input>
+<wsdl:output>
+<mime:content type="text/xml" part="parameters"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="createTroubleTicket">
+<http:operation location="createTroubleTicket"/>
+<wsdl:input>
+<mime:content type="text/xml" part="parameters"/>
+</wsdl:input>
+<wsdl:output>
+<mime:content type="text/xml" part="parameters"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="getTroubleTicketById">
+<http:operation location="getTroubleTicketById"/>
+<wsdl:input>
+<mime:content type="text/xml" part="parameters"/>
+</wsdl:input>
+<wsdl:output>
+<mime:content type="text/xml" part="parameters"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="getTroubleTicketByMSISDN">
+<http:operation location="getTroubleTicketByMSISDN"/>
+<wsdl:input>
+<mime:content type="text/xml" part="parameters"/>
+</wsdl:input>
+<wsdl:output>
+<mime:content type="text/xml" part="parameters"/>
+</wsdl:output>
+</wsdl:operation>
+</wsdl:binding>
+<wsdl:service name="TicketingService">
+<wsdl:port name="TicketingServiceHttp8004Soap11Endpoint" binding="tns:TicketingServiceSoap11Binding">
+<soap:address location="http://10.216.11.102:8004/services/TicketingService.TicketingServiceHttp8004Soap11Endpoint"/>
+</wsdl:port>
+<wsdl:port name="TicketingServiceHttp8005Soap11Endpoint" binding="tns:TicketingServiceSoap11Binding">
+<soap:address location="http://10.216.11.102:8005/services/TicketingService.TicketingServiceHttp8005Soap11Endpoint"/>
+</wsdl:port>
+<wsdl:port name="TicketingServiceHttpSoap11Endpoint" binding="tns:TicketingServiceSoap11Binding">
+<soap:address location="http://10.216.11.102:8280/services/TicketingService.TicketingServiceHttpSoap11Endpoint"/>
+</wsdl:port>
+<wsdl:port name="TicketingServiceHttp8005Soap12Endpoint" binding="tns:TicketingServiceSoap12Binding">
+<soap12:address location="http://10.216.11.102:8005/services/TicketingService.TicketingServiceHttp8005Soap12Endpoint"/>
+</wsdl:port>
+<wsdl:port name="TicketingServiceHttp8004Soap12Endpoint" binding="tns:TicketingServiceSoap12Binding">
+<soap12:address location="http://10.216.11.102:8004/services/TicketingService.TicketingServiceHttp8004Soap12Endpoint"/>
+</wsdl:port>
+<wsdl:port name="TicketingServiceHttpSoap12Endpoint" binding="tns:TicketingServiceSoap12Binding">
+<soap12:address location="http://10.216.11.102:8280/services/TicketingService.TicketingServiceHttpSoap12Endpoint"/>
+</wsdl:port>
+<wsdl:port name="TicketingServiceHttpEndpoint" binding="tns:TicketingServiceHttpBinding">
+<http:address location="http://10.216.11.102:8280/services/TicketingService.TicketingServiceHttpEndpoint"/>
+</wsdl:port>
+</wsdl:service>
+</wsdl:definitions>
