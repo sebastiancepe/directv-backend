@@ -98,50 +98,51 @@ app.post('/api/postSendAuthentication', async (req, res) => {
 // Endpoint para solicitud de portabilidad (portInRequest)
 app.put('/api/portInRequest', async (req, res) => {
     try {
-        const {
-            subscriberId,
-            authCode,
-            donorOperator,
-            recipientOperator,
-            requestedFutureDate,
-            subscriberType,
-            transparentData
-        } = req.body;
-
-        if (!subscriberId) {
-            return res.status(400).json({ message: "El subscriberId es obligatorio" });
+      const {
+        subscriberId,
+        authCode,
+        donorOperator,
+        recipientOperator,
+        requestedFutureDate,
+        subscriberType,
+        transparentData
+      } = req.body;
+  
+      if (!subscriberId) {
+        return res.status(400).json({ message: "El subscriberId es obligatorio" });
+      }
+  
+      // Construir el cuerpo del request exactamente como lo requiere el servicio remoto
+      const requestBody = {
+        authCode: authCode, // El NIP se envía exactamente como se ingresa
+        donorOperator: donorOperator,
+        recipientOperator: recipientOperator,
+        requestedFutureDate: requestedFutureDate,
+        subscriberType: subscriberType,
+        transparentData: transparentData
+      };
+  
+      const response = await axios.put(
+        `${process.env.BACKEND_URL}/rest/v6.1/mnp/portin/subscriptions/${subscriberId}`,
+        requestBody,
+        {
+          headers: {
+            'accept': 'application/json',
+            'accessKey': process.env.ACCESS_KEY,
+            'Content-Type': 'application/json'
+          }
         }
-
-        const requestBody = {
-            authCode,
-            donorOperator,
-            recipientOperator,
-            requestedFutureDate,
-            subscriberType,
-            transparentData
-        };
-
-        const response = await axios.put(
-            `${process.env.BACKEND_URL}/rest/v6.1/mnp/portin/subscriptions/${subscriberId}`,
-            requestBody,
-            {
-                headers: {
-                    'accept': 'application/json',
-                    'accessKey': process.env.ACCESS_KEY,
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
-
-        res.json(response.data);
+      );
+  
+      res.json(response.data);
     } catch (error) {
-        console.error("Error en portInRequest:", error.response?.data || error.message);
-        res.status(error.response?.status || 500).json({
-            message: 'Error al procesar la solicitud de portabilidad',
-            error: error.response?.data || error.message
-        });
+      console.error("Error en portInRequest:", error.response?.data || error.message);
+      res.status(error.response?.status || 500).json({
+        message: 'Error al procesar la solicitud de portabilidad',
+        error: error.response?.data || error.message
+      });
     }
-});
+  });
 
 // Endpoint para bloquear un dispositivo por IMEI
 app.put('/api/blockDeviceByImei', async (req, res) => {
