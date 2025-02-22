@@ -4,7 +4,7 @@ const axios = require('axios');
 const dotenv = require('dotenv');
 const cors = require('cors'); 
 const soap = require('soap');
-const fs = require('fs'); // se usará para procesar attachments
+const fs = require('fs'); // Se usará para procesar attachments
 const path = require('path');
 const xml2js = require('xml2js');
 
@@ -42,7 +42,8 @@ app.get('/api/getCustomersBySubscription', async (req, res) => {
         });
         res.json(response.data);
     } catch (error) {
-        res.status(error.response?.status || 500).json({ message: 'Error al obtener datos de suscripción' });
+        const statusCode = (error.response && error.response.status) ? error.response.status : 500;
+        res.status(statusCode).json({ message: 'Error al obtener datos de suscripción' });
         console.log(error);
     }
 });
@@ -59,7 +60,8 @@ app.get('/api/getNetworkOperator', async (req, res) => {
         });
         res.json(response.data);
     } catch (error) {
-        res.status(error.response?.status || 500).json({ message: 'Error al obtener operador de red' });
+        const statusCode = (error.response && error.response.status) ? error.response.status : 500;
+        res.status(statusCode).json({ message: 'Error al obtener operador de red' });
     }
 });
 
@@ -87,10 +89,11 @@ app.post('/api/postSendAuthentication', async (req, res) => {
 
         res.json(response.data);
     } catch (error) {
-        console.error("Error en postSendAuthentication:", error.response?.data || error.message);
-        res.status(error.response?.status || 500).json({
+        const statusCode = (error.response && error.response.status) ? error.response.status : 500;
+        console.error("Error en postSendAuthentication:", error.response && error.response.data ? error.response.data : error.message);
+        res.status(statusCode).json({
             message: 'Error al enviar autenticación NIP',
-            error: error.response?.data || error.message
+            error: (error.response && error.response.data) ? error.response.data : error.message
         });
     }
 });
@@ -98,114 +101,113 @@ app.post('/api/postSendAuthentication', async (req, res) => {
 // Endpoint para solicitud de portabilidad (portInRequest)
 app.put('/api/portInRequest', async (req, res) => {
     try {
-      const {
-        subscriberId,
-        authCode,
-        donorOperator,
-        recipientOperator,
-        requestedFutureDate,
-        subscriberType,
-        transparentData,
-        newMsisdn
-      } = req.body;
+        const {
+            subscriberId,
+            authCode,
+            donorOperator,
+            recipientOperator,
+            requestedFutureDate,
+            subscriberType,
+            transparentData,
+            newMsisdn
+        } = req.body;
   
-      // Validaciones básicas
-      if (!subscriberId) {
-        return res.status(400).json({ message: "El subscriberId es obligatorio" });
-      }
-      if (!newMsisdn) {
-        return res.status(400).json({ message: "El newMsisdn es obligatorio" });
-      }
-      // Validar subscriberType: solo NATURAL o COMPANY
-      if (subscriberType !== "NATURAL" && subscriberType !== "COMPANY") {
-        return res.status(400).json({ message: "subscriberType debe ser NATURAL o COMPANY" });
-      }
-      // Validar transparentData.subscriberIdentityType
-      if (!transparentData || !transparentData.subscriberIdentityType) {
-        return res.status(400).json({ message: "transparentData.subscriberIdentityType es obligatorio" });
-      }
-      const allowedIdTypes = ["ID", "NIT", "FOREIGN_ID", "PASSPORT"];
-      if (!allowedIdTypes.includes(transparentData.subscriberIdentityType)) {
-        return res.status(400).json({ message: "subscriberIdentityType debe ser ID, NIT, FOREIGN_ID o PASSPORT" });
-      }
-      // Validar transparentData.subscriberServiceType
-      if (!transparentData || !transparentData.subscriberServiceType) {
-        return res.status(400).json({ message: "transparentData.subscriberServiceType es obligatorio" });
-      }
-      const allowedServiceTypes = ["PREPAID", "POSTPAID"];
-      if (!allowedServiceTypes.includes(transparentData.subscriberServiceType)) {
-        return res.status(400).json({ message: "subscriberServiceType debe ser PREPAID o POSTPAID" });
-      }
-  
-      // Formatear requestedFutureDate a ISO (por ejemplo, "2025-02-22T22:29:23.043Z")
-      let formattedRequestedFutureDate;
-      const futureDateObj = new Date(requestedFutureDate);
-      if (isNaN(futureDateObj.getTime())) {
-        return res.status(400).json({ message: "requestedFutureDate no es una fecha válida" });
-      }
-      formattedRequestedFutureDate = futureDateObj.toISOString();
-  
-      // Formatear transparentData.subscriberIdentityIssue a "YYYY/MM/DD"
-      let formattedIdentityIssue;
-      const identityIssueObj = new Date(transparentData.subscriberIdentityIssue);
-      if (isNaN(identityIssueObj.getTime())) {
-        return res.status(400).json({ message: "transparentData.subscriberIdentityIssue no es una fecha válida" });
-      }
-      const year = identityIssueObj.getFullYear();
-      const month = ('0' + (identityIssueObj.getMonth() + 1)).slice(-2);
-      const day = ('0' + identityIssueObj.getDate()).slice(-2);
-      formattedIdentityIssue = `${year}/${month}/${day}`;
-      transparentData.subscriberIdentityIssue = formattedIdentityIssue;
-  
-      // Construir el objeto que se enviará al backend remoto exactamente como lo requiere el curl
-      const requestBody = {
-        authCode: authCode, // El NIP se envía tal cual (asegúrate de que el input sea tipo texto para preservar ceros)
-        donorOperator: donorOperator,
-        newMsisdn: newMsisdn,
-        recipientOperator: recipientOperator,
-        requestedFutureDate: formattedRequestedFutureDate,
-        subscriberType: subscriberType,
-        transparentData: transparentData
-      };
-  
-      const response = await axios.put(
-        `${process.env.BACKEND_URL}/rest/v6.1/mnp/portin/subscriptions/${subscriberId}`,
-        requestBody,
-        {
-          headers: {
-            'accept': 'application/json',
-            'accessKey': process.env.ACCESS_KEY,
-            'Content-Type': 'application/json'
-          }
+        // Validaciones básicas
+        if (!subscriberId) {
+            return res.status(400).json({ message: "El subscriberId es obligatorio" });
         }
-      );
+        if (!newMsisdn) {
+            return res.status(400).json({ message: "El newMsisdn es obligatorio" });
+        }
+        // Validar subscriberType: solo NATURAL o COMPANY
+        if (subscriberType !== "NATURAL" && subscriberType !== "COMPANY") {
+            return res.status(400).json({ message: "subscriberType debe ser NATURAL o COMPANY" });
+        }
+        // Validar transparentData.subscriberIdentityType
+        if (!transparentData || !transparentData.subscriberIdentityType) {
+            return res.status(400).json({ message: "transparentData.subscriberIdentityType es obligatorio" });
+        }
+        const allowedIdTypes = ["ID", "NIT", "FOREIGN_ID", "PASSPORT"];
+        if (allowedIdTypes.indexOf(transparentData.subscriberIdentityType) === -1) {
+            return res.status(400).json({ message: "subscriberIdentityType debe ser ID, NIT, FOREIGN_ID o PASSPORT" });
+        }
+        // Validar transparentData.subscriberServiceType
+        if (!transparentData || !transparentData.subscriberServiceType) {
+            return res.status(400).json({ message: "transparentData.subscriberServiceType es obligatorio" });
+        }
+        const allowedServiceTypes = ["PREPAID", "POSTPAID"];
+        if (allowedServiceTypes.indexOf(transparentData.subscriberServiceType) === -1) {
+            return res.status(400).json({ message: "subscriberServiceType debe ser PREPAID o POSTPAID" });
+        }
   
-      res.json(response.data);
+        // Formatear requestedFutureDate a ISO (por ejemplo, "2025-02-22T22:29:23.043Z")
+        let formattedRequestedFutureDate;
+        const futureDateObj = new Date(requestedFutureDate);
+        if (isNaN(futureDateObj.getTime())) {
+            return res.status(400).json({ message: "requestedFutureDate no es una fecha válida" });
+        }
+        formattedRequestedFutureDate = futureDateObj.toISOString();
+  
+        // Formatear transparentData.subscriberIdentityIssue a "YYYY/MM/DD"
+        let formattedIdentityIssue;
+        const identityIssueObj = new Date(transparentData.subscriberIdentityIssue);
+        if (isNaN(identityIssueObj.getTime())) {
+            return res.status(400).json({ message: "transparentData.subscriberIdentityIssue no es una fecha válida" });
+        }
+        const year = identityIssueObj.getFullYear();
+        const month = ('0' + (identityIssueObj.getMonth() + 1)).slice(-2);
+        const day = ('0' + identityIssueObj.getDate()).slice(-2);
+        formattedIdentityIssue = `${year}/${month}/${day}`;
+        transparentData.subscriberIdentityIssue = formattedIdentityIssue;
+  
+        // Construir el objeto que se enviará al backend remoto
+        const requestBody = {
+            authCode: authCode, // El NIP se envía tal cual
+            donorOperator: donorOperator,
+            newMsisdn: newMsisdn,
+            recipientOperator: recipientOperator,
+            requestedFutureDate: formattedRequestedFutureDate,
+            subscriberType: subscriberType,
+            transparentData: transparentData
+        };
+  
+        const response = await axios.put(
+            `${process.env.BACKEND_URL}/rest/v6.1/mnp/portin/subscriptions/${subscriberId}`,
+            requestBody,
+            {
+                headers: {
+                    'accept': 'application/json',
+                    'accessKey': process.env.ACCESS_KEY,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+  
+        res.json(response.data);
     } catch (error) {
-      console.error("Error en portInRequest:", error.response?.data || error.message);
-      res.status(error.response?.status || 500).json({
-        message: 'Error al procesar la solicitud de portabilidad',
-        error: error.response?.data || error.message
-      });
+        const statusCode = (error.response && error.response.status) ? error.response.status : 500;
+        console.error("Error en portInRequest:", error.response && error.response.data ? error.response.data : error.message);
+        res.status(statusCode).json({
+            message: 'Error al procesar la solicitud de portabilidad',
+            error: error.response && error.response.data ? error.response.data : error.message
+        });
     }
-  });
+});
   
-
-
 // Endpoint para bloquear un dispositivo por IMEI
 app.put('/api/blockDeviceByImei', async (req, res) => {
     try {
         const { phoneNumber, imei, eventDate, reportDate, reportType, reporter, reporterDocument, victimEmail, victimMinor, violenceApplied, weaponApplied } = req.body;
-
+  
         if (!phoneNumber || !imei || !eventDate || !reportDate || !reportType || !reporter || !reporterDocument || !victimEmail || victimMinor === undefined || violenceApplied === undefined) {
             return res.status(400).json({ message: "Todos los campos obligatorios deben ser proporcionados" });
         }
-
+  
         const { address, city, name, phone, state } = reporter;
         if (!address || !city || !name || !phone || !state) {
             return res.status(400).json({ message: "Todos los campos dentro de 'reporter' son obligatorios" });
         }
-
+  
         const customerResponse = await axios.get(`${process.env.BACKEND_URL}/rest/v6.1/customersBySubscription`, {
             params: { msisdn: phoneNumber },
             headers: {
@@ -213,14 +215,14 @@ app.put('/api/blockDeviceByImei', async (req, res) => {
                 'accessKey': process.env.ACCESS_KEY
             }
         });
-
-        const { subscriptions } = customerResponse.data.payload;
-        const subscriptionId = subscriptions?.[0]?.id;
+  
+        const subscriptions = customerResponse.data.payload && customerResponse.data.payload.subscriptions ? customerResponse.data.payload.subscriptions : [];
+        const subscriptionId = (subscriptions.length > 0 && subscriptions[0].id) ? subscriptions[0].id : null;
         
         if (!subscriptionId) {
             return res.status(400).json({ message: "No se pudo obtener el subscriptionId" });
         }
-
+  
         const requestBody = {
             eventDate,
             habeasData: true,
@@ -233,13 +235,13 @@ app.put('/api/blockDeviceByImei', async (req, res) => {
             victimMinor,
             violenceApplied
         };
-
+  
         if (violenceApplied) {
             requestBody.weaponApplied = weaponApplied;
         } else {
             requestBody.weaponApplied = null;
         }
-
+  
         const response = await axios.put(
             `${process.env.BACKEND_URL}/rest/v6.1/subscriptions/${subscriptionId}/handset/block`,
             requestBody,
@@ -251,17 +253,18 @@ app.put('/api/blockDeviceByImei', async (req, res) => {
                 }
             }
         );
-
+  
         res.json(response.data);
     } catch (error) {
-        console.error("Error en blockDeviceByImei:", error.response?.data || error.message);
-        res.status(error.response?.status || 500).json({
+        const statusCode = (error.response && error.response.status) ? error.response.status : 500;
+        console.error("Error en blockDeviceByImei:", error.response && error.response.data ? error.response.data : error.message);
+        res.status(statusCode).json({
             message: 'Error al procesar la solicitud de bloqueo',
-            error: error.response?.data || error.message
+            error: error.response && error.response.data ? error.response.data : error.message
         });
     }
 });
-
+  
 // Endpoint para bloquear una SIM por número telefónico
 app.put('/api/blockSimByPhoneNumber', async (req, res) => {
     try {
@@ -279,8 +282,8 @@ app.put('/api/blockSimByPhoneNumber', async (req, res) => {
             }
         });
         
-        const { subscriptions } = customerResponse.data.payload;
-        const subscriptionId = subscriptions?.[0]?.id;
+        const subscriptions = customerResponse.data.payload && customerResponse.data.payload.subscriptions ? customerResponse.data.payload.subscriptions : [];
+        const subscriptionId = (subscriptions.length > 0 && subscriptions[0].id) ? subscriptions[0].id : null;
         
         if (!subscriptionId) {
             return res.status(400).json({ message: "No se pudo obtener el subscriptionId" });
@@ -304,23 +307,24 @@ app.put('/api/blockSimByPhoneNumber', async (req, res) => {
         
         res.json(response.data);
     } catch (error) {
-        console.error("Error en blockSimByPhoneNumber:", error.response?.data || error.message);
-        res.status(error.response?.status || 500).json({
+        const statusCode = (error.response && error.response.status) ? error.response.status : 500;
+        console.error("Error en blockSimByPhoneNumber:", error.response && error.response.data ? error.response.data : error.message);
+        res.status(statusCode).json({
             message: 'Error al procesar la solicitud de bloqueo de SIM',
-            error: error.response?.data || error.message
+            error: error.response && error.response.data ? error.response.data : error.message
         });
     }
 });
-
+  
 // Endpoint para consultar IMEI
 app.post('/api/queryImei', async (req, res) => {
     try {
         const { phoneNumber } = req.body;
-
+  
         if (!phoneNumber) {
             return res.status(400).json({ message: "El número telefónico es obligatorio" });
         }
-
+  
         const customerResponse = await axios.get(`${process.env.BACKEND_URL}/rest/v6.1/customersBySubscription`, {
             params: { msisdn: phoneNumber },
             headers: {
@@ -328,14 +332,14 @@ app.post('/api/queryImei', async (req, res) => {
                 'accessKey': process.env.ACCESS_KEY
             }
         });
-
-        const { subscriptions } = customerResponse.data.payload;
-        const subscriptionId = subscriptions?.[0]?.id;
-
+  
+        const subscriptions = customerResponse.data.payload && customerResponse.data.payload.subscriptions ? customerResponse.data.payload.subscriptions : [];
+        const subscriptionId = (subscriptions.length > 0 && subscriptions[0].id) ? subscriptions[0].id : null;
+  
         if (!subscriptionId) {
             return res.status(400).json({ message: "No se pudo obtener el subscriptionId" });
         }
-
+  
         const response = await axios.post(
             `${process.env.BACKEND_URL}/rest/v6.1/handset/query/local/imei/status/subscriptions/${subscriptionId}`,
             {},
@@ -347,18 +351,18 @@ app.post('/api/queryImei', async (req, res) => {
                 }
             }
         );
-
+  
         res.json(response.data);
     } catch (error) {
-        console.error("Error en queryImei:", error.response?.data || error.message);
-        res.status(error.response?.status || 500).json({
+        const statusCode = (error.response && error.response.status) ? error.response.status : 500;
+        console.error("Error en queryImei:", error.response && error.response.data ? error.response.data : error.message);
+        res.status(statusCode).json({
             message: 'Error al consultar el IMEI',
-            error: error.response?.data || error.message
+            error: error.response && error.response.data ? error.response.data : error.message
         });
     }
 });
-
-
+  
 // --- Endpoints SOAP usando axios y xml2js ---
 
 // Endpoint para obtener categorías de Trouble Ticket
@@ -375,7 +379,7 @@ app.get('/api/getTroubleTicketCategories', async (req, res) => {
       </p:getTroubleTicketCategories>
    </soapenv:Body>
 </soapenv:Envelope>`;
-
+  
         // Enviar la petición SOAP al ESB
         const soapResponse = await axios.post(ticketingEndpoint, xmlRequest, {
             headers: {
@@ -383,7 +387,7 @@ app.get('/api/getTroubleTicketCategories', async (req, res) => {
                 'Accept': 'text/xml'
             }
         });
-
+  
         // Convertir la respuesta XML a JSON usando xml2js
         xml2js.parseString(soapResponse.data, { explicitArray: false }, (err, result) => {
             if (err) {
@@ -391,10 +395,8 @@ app.get('/api/getTroubleTicketCategories', async (req, res) => {
                 return res.status(500).json({ message: 'Error parseando XML de respuesta', error: err.message });
             }
             try {
-                // Extraer el contenido esperado del Envelope
                 const envelope = result['soapenv:Envelope'] || result.Envelope;
                 const body = envelope['soapenv:Body'] || envelope.Body;
-                // La respuesta puede venir con el prefijo "ser:" o sin él
                 const responseData = body['ser:getTroubleTicketCategories'] || body.getTroubleTicketCategories;
                 return res.json(responseData);
             } catch (extractionError) {
@@ -404,21 +406,19 @@ app.get('/api/getTroubleTicketCategories', async (req, res) => {
         });
     } catch (error) {
         console.error("Error en la llamada SOAP:", error);
-        res.status(500).json({ message: 'Error llamando al servicio SOAP', error: error.message });
+        const statusCode = (error.response && error.response.status) ? error.response.status : 500;
+        res.status(statusCode).json({ message: 'Error llamando al servicio SOAP', error: error.message });
     }
 });
-
-
-// ----------------------------------------------------------------
-// ENDPOINT SOAP para crear Trouble Ticket
-// ----------------------------------------------------------------
+  
+// Endpoint SOAP para crear Trouble Ticket
 app.post('/api/createTroubleTicket', async (req, res) => {
     try {
         const input = req.body;
         // Obtener la fecha actual en formato ISO sin milisegundos
-        const now = new Date().toISOString(); // Ej: "2025-02-21T14:47:03.123Z"
+        const now = new Date().toISOString(); // Ejemplo: "2025-02-21T14:47:03.123Z"
         const creationDate = now.split('.')[0] + 'Z'; // Resultado: "2025-02-21T14:47:03Z"
-
+  
         // Procesar attachments (opcional)
         let attachmentXml = '';
         if (input.attachments) {
@@ -433,14 +433,8 @@ app.post('/api/createTroubleTicket', async (req, res) => {
             </p:attachment>
          </p:attachments>`;
         }
-
-        // Construir el XML de solicitud con la estructura requerida
-        // Los campos fijos son:
-        //   providerId: 11
-        //   creationDate: fecha/hora actual en formato "YYYY-MM-DDTHH:MM:SSZ"
-        //   channel: CSR
-        //   appeal: false
-        // categoryId, msisdn, title y description son parámetros de entrada
+  
+        // Construir el XML de solicitud
         const xmlRequest = `
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:p="http://services.crm.ticketing.inew.com">
    <soapenv:Header/>
@@ -460,7 +454,7 @@ app.post('/api/createTroubleTicket', async (req, res) => {
       </p:createTroubleTicket>
    </soapenv:Body>
 </soapenv:Envelope>`;
-
+  
         // Enviar la petición SOAP al ESB
         const soapResponse = await axios.post(ticketingEndpoint, xmlRequest, {
             headers: {
@@ -468,7 +462,7 @@ app.post('/api/createTroubleTicket', async (req, res) => {
                 'Accept': 'text/xml'
             }
         });
-
+  
         // Convertir la respuesta XML a JSON usando xml2js
         xml2js.parseString(soapResponse.data, { explicitArray: false }, (err, result) => {
             if (err) {
@@ -478,7 +472,6 @@ app.post('/api/createTroubleTicket', async (req, res) => {
             try {
                 const envelope = result['soapenv:Envelope'] || result.Envelope;
                 const body = envelope['soapenv:Body'] || envelope.Body;
-                // Aquí extraemos la respuesta en el elemento "ser:createTroubleTicketResponse"
                 const responseData = body['ser:createTroubleTicketResponse'] || body.createTroubleTicketResponse;
                 return res.json(responseData);
             } catch (extractionError) {
@@ -488,12 +481,11 @@ app.post('/api/createTroubleTicket', async (req, res) => {
         });
     } catch (error) {
         console.error("Error en createTroubleTicket:", error);
-        return res.status(500).json({ message: 'Error llamando al servicio SOAP', error: error.message });
+        const statusCode = (error.response && error.response.status) ? error.response.status : 500;
+        return res.status(statusCode).json({ message: 'Error llamando al servicio SOAP', error: error.message });
     }
 });
-
-
-
+  
 // Iniciar servidor
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
