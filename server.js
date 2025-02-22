@@ -105,19 +105,65 @@ app.put('/api/portInRequest', async (req, res) => {
         recipientOperator,
         requestedFutureDate,
         subscriberType,
-        transparentData
+        transparentData,
+        newMsisdn
       } = req.body;
   
+      // Validaciones básicas
       if (!subscriberId) {
         return res.status(400).json({ message: "El subscriberId es obligatorio" });
       }
+      if (!newMsisdn) {
+        return res.status(400).json({ message: "El newMsisdn es obligatorio" });
+      }
+      // Validar subscriberType: solo NATURAL o COMPANY
+      if (subscriberType !== "NATURAL" && subscriberType !== "COMPANY") {
+        return res.status(400).json({ message: "subscriberType debe ser NATURAL o COMPANY" });
+      }
+      // Validar transparentData.subscriberIdentityType
+      if (!transparentData || !transparentData.subscriberIdentityType) {
+        return res.status(400).json({ message: "transparentData.subscriberIdentityType es obligatorio" });
+      }
+      const allowedIdTypes = ["ID", "NIT", "FOREIGN_ID", "PASSPORT"];
+      if (!allowedIdTypes.includes(transparentData.subscriberIdentityType)) {
+        return res.status(400).json({ message: "subscriberIdentityType debe ser ID, NIT, FOREIGN_ID o PASSPORT" });
+      }
+      // Validar transparentData.subscriberServiceType
+      if (!transparentData || !transparentData.subscriberServiceType) {
+        return res.status(400).json({ message: "transparentData.subscriberServiceType es obligatorio" });
+      }
+      const allowedServiceTypes = ["PREPAID", "POSTPAID"];
+      if (!allowedServiceTypes.includes(transparentData.subscriberServiceType)) {
+        return res.status(400).json({ message: "subscriberServiceType debe ser PREPAID o POSTPAID" });
+      }
   
-      // Construir el cuerpo del request exactamente como lo requiere el servicio remoto
+      // Formatear requestedFutureDate a ISO (por ejemplo, "2025-02-22T22:29:23.043Z")
+      let formattedRequestedFutureDate;
+      const futureDateObj = new Date(requestedFutureDate);
+      if (isNaN(futureDateObj.getTime())) {
+        return res.status(400).json({ message: "requestedFutureDate no es una fecha válida" });
+      }
+      formattedRequestedFutureDate = futureDateObj.toISOString();
+  
+      // Formatear transparentData.subscriberIdentityIssue a "YYYY/MM/DD"
+      let formattedIdentityIssue;
+      const identityIssueObj = new Date(transparentData.subscriberIdentityIssue);
+      if (isNaN(identityIssueObj.getTime())) {
+        return res.status(400).json({ message: "transparentData.subscriberIdentityIssue no es una fecha válida" });
+      }
+      const year = identityIssueObj.getFullYear();
+      const month = ('0' + (identityIssueObj.getMonth() + 1)).slice(-2);
+      const day = ('0' + identityIssueObj.getDate()).slice(-2);
+      formattedIdentityIssue = `${year}/${month}/${day}`;
+      transparentData.subscriberIdentityIssue = formattedIdentityIssue;
+  
+      // Construir el objeto que se enviará al backend remoto exactamente como lo requiere el curl
       const requestBody = {
-        authCode: authCode, // El NIP se envía exactamente como se ingresa
+        authCode: authCode, // El NIP se envía tal cual (asegúrate de que el input sea tipo texto para preservar ceros)
         donorOperator: donorOperator,
+        newMsisdn: newMsisdn,
         recipientOperator: recipientOperator,
-        requestedFutureDate: requestedFutureDate,
+        requestedFutureDate: formattedRequestedFutureDate,
         subscriberType: subscriberType,
         transparentData: transparentData
       };
@@ -143,6 +189,8 @@ app.put('/api/portInRequest', async (req, res) => {
       });
     }
   });
+  
+
 
 // Endpoint para bloquear un dispositivo por IMEI
 app.put('/api/blockDeviceByImei', async (req, res) => {
