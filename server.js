@@ -19,7 +19,7 @@ const wsdlPath = path.join(__dirname, 'ticketing.wsdl');
 
 // Middleware para permitir CORS
 app.use(cors({
-    origin: 'http://localhost:4200', // Permite solicitudes solo desde Angular
+    origin: ['http://localhost:4200', 'https://lov.com.co'], 
     methods: 'GET,POST,PUT',
     allowedHeaders: 'Content-Type,Authorization'
 }));
@@ -28,7 +28,7 @@ app.use(cors({
 app.use(express.json());
 
 // Endpoint para obtener datos de suscripción
-app.get('/api/getCustomersBySubscription', async (req, res) => {
+app.get('/api-dtv/getCustomersBySubscription', async (req, res) => {
     try {
         const { phoneNumber } = req.query;
         console.log(process.env.BACKEND_URL);
@@ -49,7 +49,7 @@ app.get('/api/getCustomersBySubscription', async (req, res) => {
 });
 
 // Endpoint para obtener el operador de red
-app.get('/api/getNetworkOperator', async (req, res) => {
+app.get('/api-dtv/getNetworkOperator', async (req, res) => {
     try {
         const { phoneNumber } = req.query;
         const response = await axios.get(`${process.env.BACKEND_URL}/rest/v6.1/mnp/operators/${phoneNumber}`, {
@@ -66,7 +66,7 @@ app.get('/api/getNetworkOperator', async (req, res) => {
 });
 
 // Endpoint para enviar autenticación NIP
-app.post('/api/postSendAuthentication', async (req, res) => {
+app.post('/api-dtv/postSendAuthentication', async (req, res) => {
     try {
         const { phoneNumber, subscriberId, operatorCode } = req.body;
         
@@ -99,7 +99,7 @@ app.post('/api/postSendAuthentication', async (req, res) => {
 });
 
 // Endpoint para solicitud de portabilidad (portInRequest)
-app.put('/api/portInRequest', async (req, res) => {
+app.put('/api-dtv/portInRequest', async (req, res) => {
     try {
         const {
             subscriberId,
@@ -195,7 +195,7 @@ app.put('/api/portInRequest', async (req, res) => {
 });
   
 // Endpoint para bloquear un dispositivo por IMEI
-app.put('/api/blockDeviceByImei', async (req, res) => {
+app.put('/api-dtv/blockDeviceByImei', async (req, res) => {
     try {
         const { phoneNumber, imei, eventDate, reportDate, reportType, reporter, reporterDocument, victimEmail, victimMinor, violenceApplied, weaponApplied } = req.body;
   
@@ -266,7 +266,7 @@ app.put('/api/blockDeviceByImei', async (req, res) => {
 });
   
 // Endpoint para bloquear una SIM por número telefónico
-app.put('/api/blockSimByPhoneNumber', async (req, res) => {
+app.put('/api-dtv/blockSimByPhoneNumber', async (req, res) => {
     try {
         const { phoneNumber } = req.body;
         
@@ -317,7 +317,7 @@ app.put('/api/blockSimByPhoneNumber', async (req, res) => {
 });
   
 // Endpoint para consultar IMEI
-app.post('/api/queryImei', async (req, res) => {
+app.post('/api-dtv/queryImei', async (req, res) => {
     try {
         const { phoneNumber } = req.body;
   
@@ -366,7 +366,7 @@ app.post('/api/queryImei', async (req, res) => {
 // --- Endpoints SOAP usando axios y xml2js ---
 
 // Endpoint para obtener categorías de Trouble Ticket
-app.get('/api/getTroubleTicketCategories', async (req, res) => {
+app.get('/api-dtv/getTroubleTicketCategories', async (req, res) => {
     try {
         // Construir el XML de solicitud (igual que se usa en Postman)
         const xmlRequest = `
@@ -412,7 +412,7 @@ app.get('/api/getTroubleTicketCategories', async (req, res) => {
 });
   
 // Endpoint SOAP para crear Trouble Ticket
-app.post('/api/createTroubleTicket', async (req, res) => {
+app.post('/api-dtv/createTroubleTicket', async (req, res) => {
     try {
         const input = req.body;
         // Obtener la fecha actual en formato ISO sin milisegundos
