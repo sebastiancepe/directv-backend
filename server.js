@@ -8,6 +8,11 @@ const fs = require('fs'); // Se usará para procesar attachments
 const path = require('path');
 const xml2js = require('xml2js');
 
+
+
+const statusMap = require('./ticketStatusMap.json');
+
+
 // Cargar variables de entorno
 dotenv.config({ path: 'config.env' });
 
@@ -26,6 +31,40 @@ app.use(cors({
 
 // Middleware para parsear JSON
 app.use(express.json());
+
+function mapStatus(obj) {
+    // Si no es objeto, retorna tal cual
+    if (typeof obj !== 'object' || obj === null) return obj;
+    for (let key in obj) {
+      if (key === 'ser:status' || key === 'status') {
+        if (obj[key] && statusMap[obj[key]]) {
+          obj[key] = statusMap[obj[key]];
+        }
+      } else if (typeof obj[key] === 'object') {
+        obj[key] = mapStatus(obj[key]);
+      }
+    }
+    return obj;
+  }
+// Función para mapear el campo de categoría utilizando el mapeo obtenido del servicio SOAP de categorías
+function mapCategory(obj, catMapping) {
+    if (typeof obj !== 'object' || obj === null) return obj;
+    for (let key in obj) {
+      if (key === 'ser:categoryId' || key === 'categoryId') {
+        let catId = String(obj[key]).trim();
+        if (catId && catMapping[catId]) {
+          // Reemplazamos el valor de categoryId por el nombre mapeado
+          obj[key] = catMapping[catId];
+        } else if (obj['ser:categoryName']) {
+          // Si no hay mapeo, se usa el valor que ya trae la respuesta en categoryName
+          obj[key] = String(obj['ser:categoryName']).trim();
+        }
+      } else if (typeof obj[key] === 'object') {
+        mapCategory(obj[key], catMapping);
+      }
+    }
+    return obj;
+  }
 
 // Endpoint para obtener datos de suscripción
 app.get('/api-dtv/getCustomersBySubscription', async (req, res) => {
@@ -485,7 +524,99 @@ app.post('/api-dtv/createTroubleTicket', async (req, res) => {
         return res.status(statusCode).json({ message: 'Error llamando al servicio SOAP', error: error.message });
     }
 });
-  
+
+// Endpoint para traer tickets por MSISDN
+// Endpoint para obtener tickets por MSISDN y mapear tanto status como categoryId
+app.get('/api-dtv/getTickedByMsisdn', async (req, res) => {
+    try {
+      const { msisdn } = req.query;
+      if (!msisdn) {
+        return res.status(400).json({ message: "El parámetro msisdn es obligatorio" });
+      }
+      
+      // XML de solicitud para obtener tickets por MSISDN
+      const xmlTicketRequest = `
+  <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:p="http://services.crm.ticketing.inew.com">
+     <soapenv:Header/>
+     <soapenv:Body>
+        <p:getTroubleTicketByMSISDN>
+           <p:providerId>11</p:providerId>
+           <p:msisdn>${msisdn}</p:msisdn>
+        </p:getTroubleTicketByMSISDN>
+     </soapenv:Body>
+  </soapenv:Envelope>`;
+      
+      // XML de solicitud para obtener las categorías de tickets
+      const xmlCategoryRequest = `
+  <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:p="http://services.crm.ticketing.inew.com">
+     <soapenv:Header/>
+     <soapenv:Body>
+        <p:getTroubleTicketCategories>
+           <p:providerId>11</p:providerId>
+           <p:getCategories>1</p:getCategories>
+        </p:getTroubleTicketCategories>
+     </soapenv:Body>
+  </soapenv:Envelope>`;
+      
+      // Crear el parser de xml2js
+      const parser = new xml2js.Parser({ explicitArray: false });
+      
+      // Llamada SOAP para obtener las categorías
+      const categorySoapResponse = await axios.post(ticketingEndpoint, xmlCategoryRequest, {
+        headers: {
+          'Content-Type': 'text/xml',
+          'Accept': 'text/xml'
+        }
+      });
+      
+      const categoryResult = await parser.parseStringPromise(categorySoapResponse.data);
+      const envelopeCat = categoryResult['soapenv:Envelope'] || categoryResult.Envelope;
+      const bodyCat = envelopeCat['soapenv:Body'] || envelopeCat.Body;
+      const categoryResponse = bodyCat['ser:getTroubleTicketCategoriesResponse'] || bodyCat.getTroubleTicketCategoriesResponse;
+      
+      // Crear objeto de mapeo: { trimmedCategoryId: trimmedCategoryName }
+      let categoriesMapping = {};
+      if (categoryResponse && categoryResponse.categories && categoryResponse.categories['ser:category']) {
+        let categoryArray = categoryResponse.categories['ser:category'];
+        if (!Array.isArray(categoryArray)) {
+          categoryArray = [categoryArray];
+        }
+        categoryArray.forEach(cat => {
+          const key = String(cat['ser:categoryId'] || "").trim();
+          const value = String(cat['ser:categoryName'] || "").trim();
+          if (key) {
+            categoriesMapping[key] = value;
+          }
+        });
+      }
+      
+      // Llamada SOAP para obtener los tickets por MSISDN
+      const ticketSoapResponse = await axios.post(ticketingEndpoint, xmlTicketRequest, {
+        headers: {
+          'Content-Type': 'text/xml',
+          'Accept': 'text/xml'
+        }
+      });
+      
+      const ticketResult = await parser.parseStringPromise(ticketSoapResponse.data);
+      const envelopeTicket = ticketResult['soapenv:Envelope'] || ticketResult.Envelope;
+      const bodyTicket = envelopeTicket['soapenv:Body'] || envelopeTicket.Body;
+      const responseData = bodyTicket['ser:getTroubleTicketByMSISDNResponse'] || bodyTicket.getTroubleTicketByMSISDNResponse;
+      
+      // Primero, mapear el campo status (si ya lo tienes implementado)
+      const responseWithStatus = mapStatus(responseData);
+      // Luego, mapear el campo categoryId usando el objeto de mapeo obtenido
+      const mappedResponse = mapCategory(responseWithStatus, categoriesMapping);
+      
+      return res.json(mappedResponse);
+      
+    } catch (error) {
+      console.error("Error en getTickedByMsisdn:", error);
+      const statusCode = (error.response && error.response.status) ? error.response.status : 500;
+      return res.status(statusCode).json({ message: 'Error llamando al servicio SOAP', error: error.message });
+    }
+  });
+    
 // Iniciar servidor
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
