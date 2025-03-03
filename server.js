@@ -527,7 +527,47 @@ app.post('/api-dtv/createTroubleTicket', async (req, res) => {
 
 // Endpoint para traer tickets por MSISDN
 // Endpoint para obtener tickets por MSISDN y mapear tanto status como categoryId
-app.get('/api-dtv/getTickedByMsisdn', async (req, res) => {
+function mapStatus(obj) {
+    if (typeof obj !== 'object' || obj === null) return obj;
+    for (let key in obj) {
+      if (key === 'ser:status' || key === 'status') {
+        if (obj[key] && statusMap[obj[key]]) {
+          obj[key] = statusMap[obj[key]];
+        }
+      } else if (typeof obj[key] === 'object') {
+        mapStatus(obj[key]);
+      }
+    }
+    return obj;
+  }
+  
+  // Función para mapear campos de categoría y otros (por ejemplo, mapear "ser:CUNId" a "cunId")
+  function mapCategory(obj, catMapping) {
+    if (typeof obj !== 'object' || obj === null) return obj;
+    for (let key in obj) {
+      // Mapeo de categoría
+      if (key === 'ser:categoryId' || key === 'categoryId') {
+        let catId = String(obj[key]).trim();
+        if (catId && catMapping[catId]) {
+          obj[key] = catMapping[catId];
+        } else if (obj['ser:categoryName']) {
+          obj[key] = String(obj['ser:categoryName']).trim();
+        }
+      }
+      // Mapeo para transformar "ser:CUNId" a "cunId"
+      else if (key === 'ser:CUNId') {
+        obj["cunId"] = String(obj[key]).trim();
+        delete obj[key];
+      }
+      // Si es un objeto, se recurre
+      else if (typeof obj[key] === 'object') {
+        mapCategory(obj[key], catMapping);
+      }
+    }
+    return obj;
+  }
+  
+  app.get('/api-dtv/getTickedByMsisdn', async (req, res) => {
     try {
       const { msisdn } = req.query;
       if (!msisdn) {
@@ -603,9 +643,9 @@ app.get('/api-dtv/getTickedByMsisdn', async (req, res) => {
       const bodyTicket = envelopeTicket['soapenv:Body'] || envelopeTicket.Body;
       const responseData = bodyTicket['ser:getTroubleTicketByMSISDNResponse'] || bodyTicket.getTroubleTicketByMSISDNResponse;
       
-      // Primero, mapear el campo status (si ya lo tienes implementado)
+      // Primero, mapear el campo status (usando la función mapStatus)
       const responseWithStatus = mapStatus(responseData);
-      // Luego, mapear el campo categoryId usando el objeto de mapeo obtenido
+      // Luego, mapear el campo categoryId (y transformar "ser:CUNId" a "cunId") usando el objeto de mapeo obtenido
       const mappedResponse = mapCategory(responseWithStatus, categoriesMapping);
       
       return res.json(mappedResponse);
@@ -616,7 +656,7 @@ app.get('/api-dtv/getTickedByMsisdn', async (req, res) => {
       return res.status(statusCode).json({ message: 'Error llamando al servicio SOAP', error: error.message });
     }
   });
-    
+      
 // Iniciar servidor
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
